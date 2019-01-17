@@ -9,11 +9,6 @@ class User
     public function register($req, $res)
     {
         $params = $req->getParsedBody();
-        if (empty($params['user'])) {
-            return $res->withJson([
-                'msg' => "缺少user参数"
-            ]);
-        }
         $user = $params['user'];
         $exists = DB::table('wo_users')->where('user', $user)->first();
         if ($exists) {
