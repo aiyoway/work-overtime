@@ -1,0 +1,14 @@
+{
+  "name": "work-overtime/frontend",
+  "require": {
+    "slim/slim": "^3.12",
+    "illuminate/database": "5.4.*",
+    "davidepastore/slim-validation": "^0.5.1"
+  },
+  "autoload": {
+    "psr-4": {
+      "App\\": "app/"
+    },
+    "files":["database.php"]
+  }
+}
