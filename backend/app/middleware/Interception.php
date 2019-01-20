@@ -21,7 +21,6 @@ class Interception
             $errors = $request->getAttribute('errors');
             return $response->withJson($errors, 400);
         }
-        $response = $next($request, $response);
-        return $response;
+        return $next($request, $response);
     }
 }
