@@ -31,6 +31,7 @@ $app->post('/overtime', 'App\WorkOvertime:index')
     ->add(new Validation(['user' => $user, 'hours' => $hours]))
     ->add(Auth::class);
 
-$app->get('/verification', 'App\WorkOvertime:index');
+$app->get('/surplus', 'App\WorkOvertime:overtimeSurplus')
+    ->add(Auth::class);
 
 $app->run();
