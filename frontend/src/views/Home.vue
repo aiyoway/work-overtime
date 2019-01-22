@@ -1,45 +1,27 @@
 <template>
     <div class="home">
-        <el-row>
-            <el-col :span="12">
-                <h2 class="primary-text">上月结余：{{lastMonthSurplus}}</h2>
-            </el-col>
-            <el-col :span="12">
-                <h2 class="primary-text">本月累积：{{thisMonthSurplus}}</h2>
-            </el-col>
-        </el-row>
-        <el-row>
-            <el-col :span="8">
-                自定义数量：
-                <el-input v-model="hours" placeholder="请输入小时数" type="number" max="12" min="1"></el-input>
-            </el-col>
-            <el-col :span="8">
-                <el-date-picker
-                        v-model="date"
-                        align="right"
-                        type="date"
-                        placeholder="选择加班日期"
-                        :picker-options="pickerOptions">
-                </el-date-picker>
-            </el-col>
-            <el-col :span="8">
-                <el-button type="primary" @click="overtimes(hours)">提交</el-button>
-            </el-col>
-        </el-row>
-        <el-row>
-            <el-col :span="6">
-                <el-button @click="overtimes(2)">加了2小时</el-button>
-            </el-col>
-            <el-col :span="6">
-                <el-button @click="overtimes(3)">加了3小时</el-button>
-            </el-col>
-            <el-col :span="6">
-                <el-button @click="overtimes(4)">加了4小时</el-button>
-            </el-col>
-            <el-col :span="6">
-                <el-button @click="overtimes(8)">加了8小时</el-button>
-            </el-col>
-        </el-row>
+        <h2 class="primary-text">上月结余：<span style="color: #F56C6C;">{{lastMonthSurplus}}</span></h2>
+        <h2 class="primary-text">本月累积：<span style="color: #67C23A;">{{thisMonthSurplus}}</span></h2>
+        <div>
+            <el-date-picker
+
+                    v-model="date"
+                    align="right"
+                    type="date"
+                    placeholder="选择加班日期"
+                    :picker-options="pickerOptions">
+            </el-date-picker>
+            <el-input style="width: 18%;margin: 0 10px;" v-model="hours" placeholder="请输入小时数" type="number" max="12" min="1">
+                <template slot="append">小时</template>
+            </el-input>
+            <el-button type="primary" @click="overtimes(hours)">提交</el-button>
+        </div>
+        <div style="margin: 30px 0;">
+            <el-button @click="overtimes(2)">提交2小时</el-button>
+            <el-button @click="overtimes(3)">提交3小时</el-button>
+            <el-button @click="overtimes(4)">提交4小时</el-button>
+            <el-button @click="overtimes(8)">提交8小时</el-button>
+        </div>
     </div>
 </template>
 
@@ -100,8 +82,10 @@
                         localStorage.setItem('user', res.data.user);
                         location.reload();
                     } catch (e) {
-                        MessageBox.alert(e.response.data.msg).then(() => location.reload());
-                        console.error(e.response.data.msg)
+                        if (e.response) {
+                            MessageBox.alert(e.response.data.msg).then(() => location.reload());
+                            console.error(e.response.data.msg)
+                        }
                     }
                 })()
             } else {
@@ -128,13 +112,14 @@
 
 <style>
     .home {
-        width: 800px;
+        width: 90%;
         margin: auto;
+        text-align: center;
         font-family: "Microsoft YaHei", "微软雅黑", Arial, sans-serif;
     }
 
     .primary-text {
-        color: #303133;
+        color: #606266;
         text-align: center;
     }
 </style>
