@@ -11,16 +11,18 @@
                     placeholder="选择加班日期"
                     :picker-options="pickerOptions">
             </el-date-picker>
-            <el-input style="width: 18%;margin: 0 10px;" v-model="hours" placeholder="请输入小时数" type="number" max="12" min="1">
+            <el-input style="width: 18%;margin: 0 10px;" v-model="hours" placeholder="请输入小时数" type="number" max="12"
+                      min="1">
                 <template slot="append">小时</template>
             </el-input>
-            <el-button type="primary" @click="overtimes(hours)">提交</el-button>
+            <el-button type="primary" @click="overtimes(hours)" :disabled="!registered">提交</el-button>
         </div>
         <div style="margin: 30px 0;">
-            <el-button @click="overtimes(2)">提交2小时</el-button>
-            <el-button @click="overtimes(3)">提交3小时</el-button>
-            <el-button @click="overtimes(4)">提交4小时</el-button>
-            <el-button @click="overtimes(8)">提交8小时</el-button>
+            <el-button @click="overtimes(2)" :disabled="!registered">提交2小时</el-button>
+            <el-button @click="overtimes(3)" :disabled="!registered">提交3小时</el-button>
+            <el-button @click="overtimes(4)" :disabled="!registered">提交4小时</el-button>
+            <el-button @click="overtimes(8)" :disabled="!registered">提交8小时</el-button>
+            <el-button @click="overtimes(8)" :disabled="!registered">提交8小时</el-button>
         </div>
     </div>
 </template>
@@ -62,6 +64,11 @@
                 }
             }
         },
+        computed: {
+            registered: () => {
+                return Boolean(localStorage.getItem('user'));
+            }
+        },
         components: {
             ElButton: Button,
             ElRow: Row,
@@ -71,10 +78,10 @@
             MessageBox
         },
         created() {
-            if (!localStorage.getItem('user')) {
+            if (!this.registered) {
                 (async () => {
                     try {
-                        let val = await MessageBox.prompt('您还没有注册，马上给自己整一个代号吧', {
+                        let val = await MessageBox.prompt('您还没有注册，给自己整一个代号吧', {
                             inputPattern: /^.{1,20}$/,
                             inputErrorMessage: '亲，用户名长度要在1~20个字符内'
                         });
