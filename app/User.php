@@ -20,10 +20,10 @@ class User
             'user' => $user,
             'created' => time()
         ];
-        if ($params['password']) {
+        if (!empty($params['password'])) {
             $insert['password'] = md5($params['password']);
         }
         DB::table('wo_users')->insert($insert);
-        return $res->withJson(['user' => $user]);
+        return $res->withJson(['user' => $user], 201);
     }
 }
