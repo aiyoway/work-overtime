@@ -33,7 +33,7 @@ $app->add(new Validation(['user' => $user]))
 $app->get('/',function($req,$res){
     return $res->write('App is running.');
 });
-$app->post('/register', 'App\User:register');
+$app->post('/register', 'App\User:register')->add(Interception::class);
 
 $app->post('/overtime', 'App\WorkOvertime:index')
     ->add(Interception::class)
