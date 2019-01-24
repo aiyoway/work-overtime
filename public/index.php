@@ -3,6 +3,9 @@
 require_once __DIR__ . '/../vendor/autoload.php';
 require_once __DIR__ . '/../bootstrap/capsule.php';
 
+$dotEnv = Dotenv\Dotenv::create(__DIR__.'/..');
+$dotEnv->load();
+
 // 显示debug错误信息
 $configuration = [
     'settings' => [
@@ -27,6 +30,9 @@ $user = v::length(1, 20);
 $app->add(new Validation(['user' => $user]))
     ->add(HttpCros::class);
 
+$app->get('/',function($req,$res){
+    return $res->write('App is running.');
+});
 $app->post('/register', 'App\User:register');
 
 $app->post('/overtime', 'App\WorkOvertime:index')

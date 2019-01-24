@@ -2,6 +2,7 @@
 
 namespace App;
 
+use Firebase\JWT\JWT;
 use Illuminate\Database\Capsule\Manager as DB;
 
 class User
@@ -23,7 +24,14 @@ class User
         if (!empty($params['password'])) {
             $insert['password'] = md5($params['password']);
         }
-        DB::table('wo_users')->insert($insert);
-        return $res->withJson(['user' => $user], 201);
+        $id = DB::table('wo_users')->insertGetId($insert);
+        $token = [
+            'iat' => time(), //签发时间
+            'data' => [
+                'id' => $id
+            ]
+        ];
+        $jwt = JWT::encode($token, getenv('APP_KEY'));
+        return $res->withJson(['token' => $jwt], 201);
     }
 }
