@@ -7,39 +7,76 @@ use Illuminate\Database\Capsule\Manager as DB;
 
 class WorkOvertime
 {
-    protected $lastMonthStart;
-    protected $lastMonthEnd;
-    protected $thisMonthStart;
-    protected $thisMonthEnd;
+    protected $thisYear;
+    protected $thisMonth;
+    protected $lastMonth;
 
     public function __construct(ContainerInterface $ci)
     {
         $this->ci = $ci;
         $this->user = $this->ci->get('user');
 
-        $this->lastMonthStart = strtotime(date('Ym', strtotime('last month')) . '01000000');
-        $this->lastMonthEnd = strtotime(date('Ym', time()) . '01000000') - 1;
 
-        $this->thisMonthStart = strtotime(date('Ym', time()) . '01000000');
-        $this->thisMonthEnd = strtotime(date('Ym', strtotime('+1 month')) . '01000000') - 1;
+        $this->thisYear = date('Y', time());
+        $this->thisMonth = (int)date('m', time());
+        $this->lastMonth = (int)date('m', strtotime('last month'));
     }
 
     public function index($req, $res)
     {
         $params = $req->getParsedBody();
-        DB::table('wo_times')->insert([
+        DB::table('overtime')->insert([
             'user_id' => $this->user->id,
             'hours' => $params['hours'],
             'date' => empty($params['date']) ? time() : strtotime($params['date']),
             'created' => time()
         ]);
+        $condition = [
+            'user_id' => $this->user->id,
+            'year' => $this->thisYear,
+            'month' => $this->thisMonth
+        ];
+        if (!DB::table('surplus')->where($condition)->first()) {
+            DB::table('surplus')->insert($condition);
+        }
+        if ($params['hours'] > 0) {
+            DB::table('surplus')->increment('surplus', $params['hours']);
+        } else {
+            $thisMonthSurplus = DB::table('surplus')->where($condition)->first();
+            $condition['month'] = $this->lastMonth;
+            $lastMonthSurplus = DB::table('surplus')->where($condition)->first();
+            if ($lastMonthSurplus->surplus >= abs($params['hours'])) {
+                DB::table('surplus')->where($condition)->update([
+                    'surplus' => $lastMonthSurplus->surplus + $params['hours']
+                ]);
+            } else if ($lastMonthSurplus->surplus <= 0) {
+                $condition['month'] = $this->thisMonth;
+                DB::table('surplus')->where($condition)->update([
+                    'surplus' => $thisMonthSurplus->surplus + $params['hours']
+                ]);
+
+            } else {
+                DB::table('surplus')->where($condition)->update([
+                    'surplus' => 0
+                ]);
+                $condition['month'] = $this->thisMonth;
+                DB::table('surplus')->where($condition)->update([
+                    'surplus' => $thisMonthSurplus->surplus + $lastMonthSurplus->surplus + $params['hours']
+                ]);
+            }
+        }
         return $res->withStatus(201);
     }
 
     public function overtimeList($req, $res)
     {
-        $lastMonthDetail = $this->surplus($this->lastMonthStart, $this->lastMonthEnd, true);
-        $thisMonthDetail = $this->surplus($this->thisMonthStart, $this->thisMonthEnd, true);
+        $lastMonthStart = strtotime(date('Ym', strtotime('last month')) . '01000000');
+        $lastMonthEnd = strtotime(date('Ym', time()) . '01000000') - 1;
+        $thisMonthStart = strtotime(date('Ym', time()) . '01000000');
+        $thisMonthEnd = strtotime(date('Ym', strtotime('+1 month')) . '01000000') - 1;
+
+        $lastMonthDetail = $this->surplus($lastMonthStart, $lastMonthEnd, true);
+        $thisMonthDetail = $this->surplus($thisMonthStart, $thisMonthEnd, true);
         return $res->withJson([
             'lastMonth' => [
                 'items' => $lastMonthDetail,
@@ -52,29 +89,27 @@ class WorkOvertime
 
     public function overtimeSurplus($req, $res)
     {
-        $lastMonthSurplus = $this->surplus($this->lastMonthStart, $this->lastMonthEnd);
-        $thisMonthSurplus = $this->surplus($this->thisMonthStart, $this->thisMonthEnd);
+        $condition = [
+            'user_id' => $this->user->id,
+            'year' => $this->thisYear,
+            'month' => $this->lastMonth
+        ];
+        $lastMonthSurplus = DB::table('surplus')->where($condition)->first();
+        $condition['month'] = $this->thisMonth;
+        $thisMonthSurplus = DB::table('surplus')->where($condition)->first();
 
         return $res->withJson([
-            'lastMonthSurplus' => $lastMonthSurplus,
-            'thisMonthSurplus' => $thisMonthSurplus,
+            'lastMonthSurplus' => $lastMonthSurplus ? $lastMonthSurplus->surplus : 0,
+            'thisMonthSurplus' => $thisMonthSurplus ? $thisMonthSurplus->surplus : 0,
         ]);
     }
 
-    protected function surplus($start, $end, $needList = false)
+    protected function surplus($start, $end)
     {
-        $data = DB::table('wo_times')->where([
+        return DB::table('overtime')->where([
             ['user_id', '=', $this->user->id],
             ['date', '>=', $start],
             ['date', '<=', $end]
         ])->get();
-        if ($needList) {
-            return $data;
-        }
-        $surplus = 0;
-        foreach ($data as $d) {
-            $surplus += $d->hours;
-        }
-        return $surplus;
     }
 }

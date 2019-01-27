@@ -3,7 +3,7 @@
 require_once __DIR__ . '/../vendor/autoload.php';
 require_once __DIR__ . '/../bootstrap/capsule.php';
 
-$dotEnv = Dotenv\Dotenv::create(__DIR__.'/..');
+$dotEnv = Dotenv\Dotenv::create(__DIR__ . '/..');
 $dotEnv->load();
 
 // 显示debug错误信息
@@ -24,16 +24,17 @@ use App\Middleware\Interception as Interception;
 use App\Middleware\Auth as Auth;
 
 //创建验证器规则
-$hours = v::intVal()->between(1, 12);
+$hours = v::intVal()->max(16)->notEmpty();
 $user = v::length(1, 20);
 
-$app->add(new Validation(['user' => $user]))
-    ->add(HttpCros::class);
+$app->add(HttpCros::class);
 
-$app->get('/',function($req,$res){
+$app->get('/', function ($req, $res) {
     return $res->write('App is running.');
 });
 $app->post('/register', 'App\User:register');
+$app->post('/login', 'App\User:login');
+$app->post('/changePwd', 'App\User:changePwd');
 
 $app->post('/overtime', 'App\WorkOvertime:index')
     ->add(Interception::class)

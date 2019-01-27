@@ -24,7 +24,7 @@ class Auth
         } catch (\Exception $e) {
             return $response->withJson(['msg' => "token错误"], 400);
         }
-        $this->ci['user'] = DB::table('wo_users')->where('id', $decoded->data->id)->first();
+        $this->ci['user'] = DB::table('users')->where('id', $decoded->data->id)->first();
         return $next($request, $response);
     }
 }
