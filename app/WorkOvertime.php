@@ -15,8 +15,6 @@ class WorkOvertime
     {
         $this->ci = $ci;
         $this->user = $this->ci->get('user');
-
-
         $this->thisYear = date('Y', time());
         $this->thisMonth = (int)date('m', time());
         $this->lastMonth = (int)date('m', strtotime('last month'));
@@ -25,6 +23,7 @@ class WorkOvertime
     public function index($req, $res)
     {
         $params = $req->getParsedBody();
+        // 记录表插入数据
         DB::table('overtime')->insert([
             'user_id' => $this->user->id,
             'hours' => $params['hours'],
@@ -36,12 +35,14 @@ class WorkOvertime
             'year' => $this->thisYear,
             'month' => $this->thisMonth
         ];
+        // 如果当月没有余额记录则新建一条
         if (!DB::table('surplus')->where($condition)->first()) {
             DB::table('surplus')->insert($condition);
         }
         if ($params['hours'] > 0) {
             DB::table('surplus')->increment('surplus', $params['hours']);
         } else {
+            // 核销逻辑
             $thisMonthSurplus = DB::table('surplus')->where($condition)->first();
             $condition['month'] = $this->lastMonth;
             $lastMonthSurplus = DB::table('surplus')->where($condition)->first();
@@ -54,7 +55,6 @@ class WorkOvertime
                 DB::table('surplus')->where($condition)->update([
                     'surplus' => $thisMonthSurplus->surplus + $params['hours']
                 ]);
-
             } else {
                 DB::table('surplus')->where($condition)->update([
                     'surplus' => 0

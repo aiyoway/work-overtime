@@ -22,23 +22,28 @@ $app->add(HttpCros::class);
 $app->get('/', function ($req, $res) {
     return $res->write('App is running.');
 });
-$app->post('/register', 'App\User:register');
-$app->post('/login', 'App\User:login');
-$app->post('/changePwd', 'App\User:changePwd');
 
-$app->post('/overtime', 'App\WorkOvertime:index')
-    ->add(Interception::class)
-    ->add(new Validation(['hours' => $hours]))
-    ->add(Auth::class);
+$app->group('', function () {
+    $this->post('/register', 'App\User:register');
+    $this->post('/login', 'App\User:login');
+    $this->post('/changePwd', 'App\User:changePwd');
+})->add(Interception::class)
+    ->add(new Validation(['user' => $user]));
 
-$app->get('/overtime', 'App\WorkOvertime:overtimeList')
-    ->add(Auth::class);
+$app->group('', function () use ($hours) {
+    $this->get('/overtime', 'App\WorkOvertime:overtimeList')
+        ->add(Interception::class);
 
-$app->get('/surplus', 'App\WorkOvertime:overtimeSurplus')
-    ->add(Auth::class);
+    $this->post('/overtime', 'App\WorkOvertime:index')
+        ->add(Interception::class)
+        ->add(new Validation(['hours' => $hours]));
+
+    $this->get('/surplus', 'App\WorkOvertime:overtimeSurplus')
+        ->add(Interception::class);
+})->add(Auth::class);
 
 //try {
-$app->run();
+    $app->run();
 //} catch (\Exception $e) {
 //    $res = $app->getContainer()->get('response');
 //    if ($e instanceof \Slim\Exception\MethodNotAllowedException) {
