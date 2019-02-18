@@ -1,31 +1,21 @@
 <?php
 
-require_once __DIR__ . '/../vendor/autoload.php';
-require_once __DIR__ . '/../bootstrap/capsule.php';
-
-$dotEnv = Dotenv\Dotenv::create(__DIR__ . '/..');
-$dotEnv->load();
-
-// 显示debug错误信息
-$configuration = [
-    'settings' => [
-        'displayErrorDetails' => true,
-    ],
-];
-$c = new \Slim\Container($configuration);
-$app = new \Slim\App($c);
-
-use Respect\Validation\Validator as v;
-use DavidePastore\Slim\Validation\Validation as Validation;
+require_once __DIR__.'/../bootstrap/bootstrap.php';
 
 // 中间件
 use App\Middleware\HttpCros as HttpCros;
 use App\Middleware\Interception as Interception;
 use App\Middleware\Auth as Auth;
 
+use Respect\Validation\Validator as v;
+use DavidePastore\Slim\Validation\Validation as Validation;
+
 //创建验证器规则
 $hours = v::intVal()->max(16)->notEmpty();
 $user = v::length(1, 20);
+
+$c = new \Slim\Container($configuration);
+$app = new \Slim\App($c);
 
 $app->add(HttpCros::class);
 
